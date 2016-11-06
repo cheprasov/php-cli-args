@@ -14,3 +14,4 @@ include(__DIR__ . '/autoloader.php');
 use CliArgs\CliArgs;
 
 $res = CliArgs::parse($argv, true);
+var_dump($res);

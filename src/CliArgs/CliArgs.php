@@ -47,6 +47,7 @@ class CliArgs
                 } else {
                     $key = substr($arg, 2, $pos - 2);
                     $result[$key] = substr($arg, $pos + 1);
+                    $key = null;
                     continue;
                 }
             } elseif (0 === strpos($arg, '-')) { // [-a] or [-a b] or [-abc]
@@ -58,12 +59,15 @@ class CliArgs
                     foreach ($arguments as $a) {
                         $result[$a] = $default;
                     }
+                    $key = null;
                     continue;
                 }
             } else {
                 if ($key) {
                     $result[$key] = $arg;
                     $key = null;
+                } else {
+                    $result[] = $arg;
                 }
             }
         }
