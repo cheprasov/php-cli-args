@@ -12,21 +12,87 @@ namespace CliArgs;
 
 class CliArgs
 {
+
     /**
-     * @param string|array|null $argv
-     * @param mixed $default
-     * @return array
+     * @var array|null
      */
-    public static function parse($argv, $default = null)
+    protected $config;
+
+    /**
+     * @var array
+     */
+    protected $aliases;
+
+    /**
+     * @var array|null
+     */
+    protected $arguments;
+
+    /**
+     * @param array $config
+     */
+    public function __construct(array $config = null)
     {
-        if (!$argv) {
-            return [];
+        $this->setConfig($config);
+    }
+
+    public function setConfig(array $config = null)
+    {
+        $this->config = $config;
+        if (!$config) {
+            $this->aliases = null;
+            return;
         }
-        if (is_array($argv)) {
-            return static::parseArray($argv,
-                $default);
+        $this->aliases = [];
+        foreach ($config as $key => $cfg) {
+            $this->aliases[$key] = &$config[$key];
+            if (isset($cfg['short'])) {
+                $this->aliases[$cfg['short']] = &$config[$key];
+            }
+            $config[$key]['long'] = $key;
         }
-        return [];
+    }
+
+    /**
+     * @return array|null
+     */
+    public function getArguments()
+    {
+        if (!$this->arguments && isset($GLOBALS['argv']) && is_array($GLOBALS['argv'])) {
+            $this->arguments = self::parseArray($GLOBALS['argv']);
+        }
+        return $this->arguments;
+    }
+
+    /**
+     * @param string $arg
+     * @return mixed
+     */
+    public function getArg($arg)
+    {
+        if (!$cfg = $this->getArgFromConfig($arg)) {
+            return null;
+        }
+        $arguments = $this->getArguments();
+        if (isset($cfg['long']) && isset($arguments[$cfg['long']])) {
+            return $arguments[$cfg['long']];
+        }
+        if (isset($cfg['short']) && isset($arguments[$cfg['short']])) {
+            return $arguments[$cfg['short']];
+        }
+        return isset($cfg['default']) ? $cfg['default'] : null;
+    }
+
+    /**
+     * @param $arg
+     * @return null
+     */
+    protected function getArgFromConfig($arg)
+    {
+        if (isset($this->aliases[$arg])) {
+            return $this->aliases[$arg];
+        }
+        return null;
     }
 
     /**
