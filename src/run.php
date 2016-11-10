@@ -14,37 +14,52 @@ use CliArgs\CliArgs;
 
 $config = [
     'help' => [
-            'short' => 'h',
-            'info' => 'some text',
-            'filter' => 'bool',
-        ],
+        'short' => 'h',
+        'help' => 'Show help',
+        'filter' => 'help',
+    ],
     'count' => [
-            'short' => 'c',
-            'info' => 'count of bla',
-            'default' => 0,
-            'filter' => 'int'
-        ],
+        'short' => 'c',
+        'help' => 'count of bla',
+        'default' => 0,
+        'filter' => 'int'
+    ],
     'user-id' => [
-            'long'  => 'user-id',
-            'info' => 'Id of user',
-            'default' => 0,
-            'filter' => 'int',
-        ],
+        'long'  => 'user-id',
+        'help' => 'Id of user',
+        'default' => 0,
+        'filter' => 'int',
+    ],
     'type' => [
-            'short' => 't',
-            'info' => 'type please',
-            'default' => 'a',
-            'filter' => ['a', 'b', 'c'],
-        ],
+        'short' => 't',
+        'help' => 'type please',
+        'default' => 'a',
+        'filter' => ['a', 'b', 'c'],
+    ],
     'alias' => [
         'short'  => 'a',
-        'info' => 'type please',
+        'help' => 'type please',
         'default' => 'a',
         'filter' => '/^a\d{2}$/',
     ],
+    'json' => [
+        'short'  => 'j',
+        'help' => 'type please',
+        'default' => 'a',
+        'filter' => 'json',
+    ],
+    'func' => [
+        'short'  => 'f',
+        'help' => 'type please',
+        'default' => null,
+        'filter' => function($val, $default) { return $val * 2; },
+    ],
+    'key' => [
+        'short'  => 'k',
+        'default' => null,
+    ],
 ];
 $CliArgs = new CliArgs($config);
-var_dump('c', $CliArgs->getArg('c'));
-var_dump('count', $CliArgs->getArg('count'));
-var_dump('type', $CliArgs->getArg('type'));
-var_dump('alias', $CliArgs->getArg('alias'));
+$key = $CliArgs->getArg('key');
+var_dump($key, $CliArgs->getArg($key));
+

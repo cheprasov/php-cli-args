@@ -12,6 +12,11 @@ namespace CliArgs;
 
 class CliArgs
 {
+    const FILTER_INT   = 'int';
+    const FILTER_FLOAT = 'float';
+    const FILTER_BOOL  = 'bool';
+    const FILTER_JSON  = 'json';
+    const FILTER_HELP  = 'help';
 
     /**
      * @var array|null
@@ -29,6 +34,11 @@ class CliArgs
     protected $arguments;
 
     /**
+     * @var array
+     */
+    protected $cache = [];
+
+    /**
      * @param array $config
      */
     public function __construct(array $config = null)
@@ -36,9 +46,13 @@ class CliArgs
         $this->setConfig($config);
     }
 
+    /**
+     * @param array|null $config
+     */
     public function setConfig(array $config = null)
     {
         $this->config = $config;
+        $this->cache = [];
         if (!$config) {
             $this->aliases = null;
             return;
@@ -73,14 +87,75 @@ class CliArgs
         if (!$cfg = $this->getArgFromConfig($arg)) {
             return null;
         }
+        if (array_key_exists($arg, $this->cache)) {
+            return $this->cache[$arg];
+        }
         $arguments = $this->getArguments();
+
         if (isset($cfg['long']) && isset($arguments[$cfg['long']])) {
-            return $arguments[$cfg['long']];
+            $value = $arguments[$cfg['long']];
+        } elseif (isset($cfg['short']) && isset($arguments[$cfg['short']])) {
+            $value = $arguments[$cfg['short']];
+        } elseif (isset($cfg['default'])) {
+            return $cfg['default'];
+        } else {
+            return null;
         }
-        if (isset($cfg['short']) && isset($arguments[$cfg['short']])) {
-            return $arguments[$cfg['short']];
+
+        if (isset($cfg['filter'])) {
+            $value = $this->filterValue($cfg['filter'], $value, isset($cfg['default']) ? $cfg['default'] : null);
         }
-        return isset($cfg['default']) ? $cfg['default'] : null;
+
+        if (isset($cfg['long'])) {
+            $this->cache[$cfg['long']] = $value;
+        }
+        if (isset($cfg['short'])) {
+            $this->cache[$cfg['short']] = $value;
+        }
+
+        return $value;
+    }
+
+    /**
+     * @param mixed $filter
+     * @param mixed $value
+     * @param mixed|null $default
+     * @return mixed|null
+     */
+    protected function filterValue($filter, $value, $default = null)
+    {
+        if (is_string($filter)) {
+            switch ($filter) {
+               case self::FILTER_BOOL:
+                   return filter_var($value, FILTER_VALIDATE_BOOLEAN);
+
+               case self::FILTER_INT:
+                   return (int)$value;
+
+               case self::FILTER_FLOAT:
+                   return (float)$value;
+
+               case self::FILTER_JSON:
+                   return json_decode($value, true);
+
+                case self::FILTER_HELP:
+                    return $this->getHelp($value);
+
+                default:
+                    if (preg_match($filter, $value)
+                        && preg_last_error() == PREG_NO_ERROR) {
+                        return $value;
+                    }
+            }
+            return $default;
+        }
+        if (is_array($filter)) {
+            return in_array($value, $filter, true) ? $value : $default;
+        }
+        if (is_callable($filter)) {
+            return $filter($value, $default);
+        }
+        return $default;
     }
 
     /**
@@ -93,6 +168,22 @@ class CliArgs
             return $this->aliases[$arg];
         }
         return null;
+    }
+
+    /**
+     * @param mixed $value
+     * @return string mixed
+     */
+    protected function getHelp($value)
+    {
+        $lines = [];
+        foreach ($this->config as $key => $cfg) {
+            $lines[] = [
+                '--' . $key . (isset($cfg['short']) ? ' or -' . $cfg['short'] : ''),
+                isset($cfg['help']) ? $cfg['help'] : '',
+            ];
+        }
+        return $value;
     }
 
     /**
