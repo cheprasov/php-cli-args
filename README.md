@@ -235,6 +235,7 @@ or
     print_r($CliArgs->getArg('user-id'));
     print_r($CliArgs->getArg('u'));
 ```
+
 ### Create a new instance
 ```php
 // simple config
