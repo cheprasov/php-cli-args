@@ -16,6 +16,34 @@ This class is not workable when [register_argc_argv](http://php.net/manual/en/in
 
 ## Usage
 
+### Example
+
+run
+```
+> example.php --name=Alexander --age=32 --sex=m
+or
+> example.php -n Alexander -a 32 -s m
+```
+
+example.php
+```php
+$config = [
+    'name' => 'n',
+    'age' => 'a',
+    'sex' => 's'
+];
+$CliArgs = new CliArgs($config);
+
+echo $CliArgs->getArg('name'); // Alexander
+echo $CliArgs->getArg('n'); // Alexander
+
+echo $CliArgs->getArg('age'); // 42
+echo $CliArgs->getArg('a'); // 42
+
+echo $CliArgs->getArg('sex'); // m
+echo $CliArgs->getArg('s'); // m
+```
+
 ### Config
 
 Note: all params from cli that you want to use should be specified in config, otherwise they will be ignored.
