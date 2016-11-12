@@ -54,33 +54,38 @@ class CliArgs
      */
     protected function setConfig(array $config = null)
     {
-        $this->config = $config;
         $this->cache = [];
         if (!$config) {
+            $this->config = null;
             $this->aliases = null;
             return;
         }
-        $this->aliases = [];
-        foreach ($config as $key => $cfg) {
-            $this->aliases[$key] = &$config[$key];
-            $config[$key]['key'] = $key;
 
-            if (isset($cfg['alias'])) {
-                $this->aliases[$cfg['alias']] = &$config[$key];
-            } else {
-                $config[$key]['alias'] = null;
+        $newConfig = [];
+        foreach ($config as $key => $cfg) {
+            if (is_int($key) && is_string($cfg)) {
+                $key = $cfg;
+                $cfg = [];
+            } elseif (is_string($key) && is_string($cfg)) {
+                $cfg = ['alias' => $cfg];
             }
-            if (!array_key_exists('default', $cfg)) {
-                $config[$key]['default'] = null;
-            }
-            if (!isset($cfg['help'])) {
-                $config[$key]['help'] = null;
-            }
-            if (!isset($cfg['filter'])) {
-                $config[$key]['filter'] = null;
+            $newConfig[$key] = [
+                'key' => $key,
+                'alias' => isset($cfg['alias']) ? $cfg['alias'] : null,
+                'default' => array_key_exists('default', $cfg) ? $cfg['default'] : null,
+                'help' => isset($cfg['help']) ? $cfg['help'] : null,
+                'filter' => isset($cfg['filter']) ? $cfg['filter'] : null,
+            ];
+        }
+        $this->config = $newConfig;
+
+        $this->aliases = [];
+        foreach ($this->config as $key => $cfg) {
+            $this->aliases[$key] = &$this->config[$key];
+            if ($cfg['alias']) {
+                $this->aliases[$cfg['alias']] = &$this->config[$key];
             }
         }
-        $this->config = $config;
     }
 
     /**

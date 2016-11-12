@@ -8,7 +8,7 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace Test\Build;
+namespace Test\Functional;
 
 use CliArgs\CliArgs;
 
@@ -171,6 +171,12 @@ class CliArgsTest extends \PHPUnit_Framework_TestCase {
                 'f',
                 true
             ],
+            [
+                [__FILE__, '--flag', 'foo'],
+                ['flag' => ['filter' => 'flag', 'alias' => 'f']],
+                'f',
+                true
+            ],
             // BOOL
             [
                 [__FILE__, '-b'],
@@ -297,9 +303,21 @@ class CliArgsTest extends \PHPUnit_Framework_TestCase {
             ],
             [
                 [__FILE__, '--func', '15'],
-                ['i' => ['filter' => function($a) { return $a * 2;} , 'alias' => 'func']],
+                ['i' => ['filter' => function($a) { return $a * 2;}, 'alias' => 'func']],
                 'i',
                 30
+            ],
+            [
+                [__FILE__, '--name', 'alexander cheprasov'],
+                [
+                    'n' => [
+                        'filter' => function($name) {
+                            return mb_convert_case($name, MB_CASE_TITLE, 'UTF-8');},
+                        'alias' => 'name'
+                    ]
+                ],
+                'n',
+                'Alexander Cheprasov'
             ],
             // ENUM
             [
@@ -338,6 +356,31 @@ class CliArgsTest extends \PHPUnit_Framework_TestCase {
                 'e',
                 null
             ],
+            // WITHOUT FILTER
+            [
+                [__FILE__, '-e', '42'],
+                ['e' => []],
+                'e',
+                '42'
+            ],
+            [
+                [__FILE__, '--foo', '42'],
+                ['foo' => []],
+                'foo',
+                '42'
+            ],
+            [
+                [__FILE__, '--foo'],
+                ['foo' => []],
+                'foo',
+                null
+            ],
+            [
+                [__FILE__, '--foo'],
+                ['foo' => []],
+                'foo',
+                null
+            ],
         ];
     }
 
@@ -352,6 +395,221 @@ class CliArgsTest extends \PHPUnit_Framework_TestCase {
     {
         $GLOBALS['argv'] = $argv;
         $CliArgs = new CliArgs($config);
-        $this->assertEquals($expect, $CliArgs->getArg($arg), 'Expected value ' . print_r($expect, true));
+        $this->assertEquals($expect, $CliArgs->getArg($arg));
+    }
+
+    public function providerTestGetArguments()
+    {
+        return [
+            [
+                [__FILE__, '-e'],
+                [__FILE__, 'e' => null]
+            ],
+            [
+                [__FILE__, '-f', 'bar', '--foo', 'baz'],
+                [__FILE__, 'f' => 'bar', 'foo' => 'baz']
+            ],
+            [
+                [__FILE__, 'a', 'b', 'c'],
+                [__FILE__, 'a', 'b', 'c']
+            ],
+            [
+                [__FILE__, '-abc=e'],
+                [__FILE__, 'a' => null, 'b' => null, 'c' => null, '=' => null, 'e' => null]
+            ],
+            [
+                [__FILE__, '--abc'],
+                [__FILE__, 'abc' => null]
+            ],
+            [
+                [__FILE__, '--foo=bar'],
+                [__FILE__, 'foo' => 'bar']
+            ],
+            [
+                [__FILE__, '--foo=bar', 'baz', 'foo'],
+                [__FILE__, 'foo' => 'bar', 'baz', 'foo']
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider providerTestGetArguments
+     * @param array $argv
+     * @param array $arguments
+     */
+    public function testGetArguments($argv, $arguments)
+    {
+        $GLOBALS['argv'] = $argv;
+        $CliArgs = new CliArgs();
+        $this->assertEquals($arguments, $CliArgs->getArguments());
+    }
+
+    public function providerTestGetArg()
+    {
+        return [
+            [
+                [__FILE__, '--foo', 'bar'],
+                null,
+                'foo',
+                null
+            ],
+            [
+                [__FILE__, '--foo', 'bar'],
+                ['foo' => []],
+                'foo',
+                'bar'
+            ],
+            [
+                [__FILE__, '--foo', 'bar'],
+                ['foo' => ['filter' => 'flag']],
+                'foo',
+                true
+            ],
+            [
+                [__FILE__, '--user-id'],
+                ['user-id' => ['filter' => 'int', 'default' => 0]],
+                'user-id',
+                0
+            ],
+            [
+                [__FILE__, '--user-id', '42'],
+                ['user-id' => ['filter' => 'int', 'default' => 0]],
+                'user-id',
+                42
+            ],
+            [
+                [__FILE__, '--user-id=42'],
+                ['user-id' => ['filter' => 'int', 'default' => 0]],
+                'user-id',
+                42
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider providerTestGetArg
+     * @param array $argv
+     * @param array|null $config
+     * @param string $arg
+     * @param mixed $expect
+     */
+    public function testGetArg($argv, $config, $arg, $expect)
+    {
+        $GLOBALS['argv'] = $argv;
+        $CliArgs = new CliArgs($config);
+        $this->assertEquals($expect, $CliArgs->getArg($arg));
+    }
+
+    public function providerTestGetArgs()
+    {
+        return [
+            [
+                [__FILE__, '--foo', 'bar'],
+                null,
+                []
+            ],
+            [
+                [__FILE__, '--foo', 'bar'],
+                ['foo' => []],
+                ['foo' => 'bar']
+            ],
+            [
+                [__FILE__, '--foo', 'bar'],
+                ['foo' => ['filter' => 'flag']],
+                ['foo' => true]
+            ],
+            [
+                [__FILE__, '--user-id'],
+                ['user-id' => ['filter' => 'int', 'default' => 0]],
+                ['user-id' => 0]
+            ],
+            [
+                [__FILE__, '--user-id', '42'],
+                ['user-id' => ['filter' => 'int', 'default' => 0]],
+                ['user-id' => 42]
+            ],
+            [
+                [__FILE__, '--user-id=42'],
+                ['user-id' => ['filter' => 'int', 'default' => 0]],
+                ['user-id' => 42]
+            ],
+            [
+                [__FILE__, '--user-id=32', '--sex=m', '--city=London', '--name=Alexander'],
+                [
+                    'user-id' => ['filter' => 'int', 'default' => 0],
+                    'sex' => ['filter' => ['m', 'f']],
+                    'city' => [],
+                ],
+                ['user-id' => 32, 'sex' => 'm', 'city' => 'London']
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider providerTestGetArgs
+     * @param array $argv
+     * @param array|null $config
+     * @param mixed $expect
+     */
+    public function testGetArgs($argv, $config, $expect)
+    {
+        $GLOBALS['argv'] = $argv;
+        $CliArgs = new CliArgs($config);
+        $this->assertEquals($expect, $CliArgs->getArgs());
+    }
+
+    public function providerTestIsFlagExists()
+    {
+        return [
+            [
+                [__FILE__],
+                'foo', 'bar',
+                false
+            ],
+            [
+                [__FILE__, '--bar'],
+                'foo', null,
+                false
+            ],
+            [
+                [__FILE__, 'foo'],
+                'foo', null,
+                false
+            ],
+            [
+                [__FILE__, '--foo', 'bar'],
+                'foo', null,
+                true
+            ],
+            [
+                [__FILE__, '--foo', 'bar'],
+                'foo', 'f',
+                true
+            ],
+            [
+                [__FILE__, '-f'],
+                'foo', 'f',
+                true
+            ],
+            [
+                [__FILE__, '-f', 'bar'],
+                'f', null,
+                true
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider providerTestIsFlagExists
+     * @param array $argv
+     * @param string $arg
+     * @param string|null $alias
+     * @param bool $expect
+     */
+    public function testIsFlagExists($argv, $arg, $alias, $expect)
+    {
+        $GLOBALS['argv'] = $argv;
+        $CliArgs = new CliArgs();
+        $this->assertEquals($expect, $CliArgs->isFlagExists($arg, $alias));
     }
 }

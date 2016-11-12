@@ -51,4 +51,4 @@ $config = [
 $CliArgs = new CliArgs($config);
 
 //var_dump($CliArgs->isArgExists('help'));
-var_dump($CliArgs->getArgs());
+var_dump($CliArgs->getArg());
