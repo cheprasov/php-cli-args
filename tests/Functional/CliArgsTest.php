@@ -12,8 +12,8 @@ namespace Test\Functional;
 
 use CliArgs\CliArgs;
 
-class CliArgsTest extends \PHPUnit_Framework_TestCase {
-
+class CliArgsTest extends \PHPUnit_Framework_TestCase
+{
     public function providerTestFilterHelp()
     {
         return [
@@ -105,6 +105,7 @@ class CliArgsTest extends \PHPUnit_Framework_TestCase {
     }
 
     /**
+     * @see \CliArgs\CliArgs::getArg
      * @dataProvider providerTestFilterHelp
      * @param array $argv
      * @param array $config
@@ -385,6 +386,7 @@ class CliArgsTest extends \PHPUnit_Framework_TestCase {
     }
 
     /**
+     * @see \CliArgs\CliArgs::getArg
      * @dataProvider providerTestFilters
      * @param array $argv
      * @param array $config
@@ -433,6 +435,7 @@ class CliArgsTest extends \PHPUnit_Framework_TestCase {
     }
 
     /**
+     * @see \CliArgs\CliArgs::getArguments
      * @dataProvider providerTestGetArguments
      * @param array $argv
      * @param array $arguments
@@ -487,6 +490,7 @@ class CliArgsTest extends \PHPUnit_Framework_TestCase {
     }
 
     /**
+     * @see \CliArgs\CliArgs::getArg
      * @dataProvider providerTestGetArg
      * @param array $argv
      * @param array|null $config
@@ -546,6 +550,7 @@ class CliArgsTest extends \PHPUnit_Framework_TestCase {
     }
 
     /**
+     * @see \CliArgs\CliArgs::getArgs
      * @dataProvider providerTestGetArgs
      * @param array $argv
      * @param array|null $config
@@ -600,6 +605,7 @@ class CliArgsTest extends \PHPUnit_Framework_TestCase {
     }
 
     /**
+     * @see \CliArgs\CliArgs::isFlagExists
      * @dataProvider providerTestIsFlagExists
      * @param array $argv
      * @param string $arg

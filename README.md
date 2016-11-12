@@ -1,13 +1,15 @@
 [![MIT license](http://img.shields.io/badge/license-MIT-brightgreen.svg)](http://opensource.org/licenses/MIT)
 # CliArgs v1.0.0 for PHP >= 5.5
 
-##
-
-WORK IN PROGRESS
-CLASS IN DEVELOPMENT
-
 ## About
-Easy way to gets options from the command line argument list.
+Class **CliArgs** helps to get options from the command line argument list easy.
+
+## Features
+- CliArgs uses **$GLOBAL['argv']** as base, and it does not use function **getopt()**.
+- It does not implement logic for 'required', it should be in your side.
+- It helps to get options easy from command line argument list.
+- It generates help info about options based on config.
+- Flexible configuration and data filtering.
 
 ## Note
 This class is not workable when [register_argc_argv](http://php.net/manual/en/ini.core.php#ini.register-argc-argv) is disabled.
@@ -38,7 +40,7 @@ $config = [
             // Text that will returned, if you request help
 
         'filter' => 'int',
-            // [optional], [string | array | function]
+            // [optional], [string | array | callable]
             // Filter for the return value.
             // You can use next filters: flag, bool, int, float, help, json, <array>, <function>
 
@@ -48,7 +50,7 @@ $config = [
             // 'json' - decode JSON data before return.
             // 'flag' - will return TRUE, if key is exists in command line argument list.
             // <array> - use array for enums. Example use ['a', 'b', 'c'] to get only one of these.
-            // <function> - use function($value, $default) { ... } to process value by yourself
+            // <callable> - use function($value, $default) { ... } to process value by yourself
             // 'help' - use this filter if you want generate and return help about all config.
     ]
 ];
@@ -218,14 +220,14 @@ $CliArgs = new CliArgs($config);
 > example.php --foo Hello --bar World
 ```
 
-###### new CliArgs([array|null])
+##### new CliArgs([array|null])
 Constructor.
 ```php
 $config = ['foo' => 'f', 'bar' => 'b'];
 $CliArgs = new CliArgs($config);
 ```
 
-###### getArgs(): array
+##### getArgs(): array
 Get all params.
 ```php
 $argv = $CliArgs->getArgs();
@@ -236,7 +238,7 @@ print_r($argv);
 // )
 ```
 
-###### getArg(string $arg): mixed
+##### getArg(string $arg): mixed
 Get one param
 ```php
 $arg = $CliArgs->getArg('foo');
@@ -244,7 +246,7 @@ $arg = $CliArgs->getArg('foo');
 echo $arg; // Hello
 ```
 
-###### isFlagExists(string $arg, string|null $alias): bool
+##### isFlagExists(string $arg, string|null $alias): bool
 Checks if the given key exists in the arguments console list.
 Returns true if $arg or $alias are exists
 ```php
@@ -253,7 +255,7 @@ echo $CliArgs->isFlagExists('foo'); // true
 echo $CliArgs->isFlagExists('foo', 'f'); // true
 ```
 
-###### getArguments(): array
+##### getArguments(): array
 Get prepared ARGV
 ```php
 print_r($CliArgs->getArguments());
@@ -279,7 +281,6 @@ and add dependency to your project:
 ## Running tests
 
     ./vendor/bin/phpunit
-
 
 ## Something doesn't work
 
