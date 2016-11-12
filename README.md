@@ -1,6 +1,11 @@
 [![MIT license](http://img.shields.io/badge/license-MIT-brightgreen.svg)](http://opensource.org/licenses/MIT)
 # CliArgs v1.0.0 for PHP >= 5.5
 
+##
+
+WORK IN PROGRESS
+CLASS IN DEVELOPMENT
+
 ## About
 Easy way to gets options from the command line argument list.
 
