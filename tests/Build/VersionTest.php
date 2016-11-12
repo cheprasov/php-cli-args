@@ -12,8 +12,8 @@ namespace Test\Build;
 
 use CliArgs\CliArgs;
 
-class VersionTest extends \PHPUnit_Framework_TestCase {
-
+class VersionTest extends \PHPUnit_Framework_TestCase
+{
     public function test_version() {
         chdir(__DIR__.'/../../');
         $composer = json_decode(file_get_contents('./composer.json'), true);

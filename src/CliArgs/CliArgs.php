@@ -192,11 +192,11 @@ class CliArgs
             }
             return $default;
         }
+        if (is_callable($filter)) {
+            return call_user_func($filter, $value, $default);
+        }
         if (is_array($filter)) {
             return in_array($value, $filter, true) ? $value : $default;
-        }
-        if (is_callable($filter)) {
-            return $filter($value, $default);
         }
         return $default;
     }
