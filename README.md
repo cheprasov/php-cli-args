@@ -33,7 +33,7 @@ $config = [
             // Default value will returned if param is not setted
             // or params has not value.
 
-        'help' => 'p',
+        'help' => 'Some description about param',
             // [optional], [string]
             // Text that will returned, if you request help
 
@@ -58,7 +58,7 @@ $CliArgs = new CliArgs($config);
 
 Examples of config:
 
-#0
+0
 ```php
 
 // Simple configs
@@ -72,8 +72,8 @@ $config2 = [
 ];
 
 // The config3 and config4 are equal
-$config = ['foo' => 'f', 'bar' => 'b', 'a'];
-$config = [
+$config3 = ['foo' => 'f', 'bar' => 'b', 'a'];
+$config4 = [
     'foo' => [
         'alias' => 'f',
     ],
@@ -84,7 +84,7 @@ $config = [
 ];
 ```
 
-#1
+1
 ```php
 $config = [
     'help' => [
@@ -130,7 +130,7 @@ $CliArgs = new CliArgs($config);
     print_r($CliArgs->getArg('u'));
 ```
 
-#2
+2
 ```php
     $config = [
         'flag' => [
@@ -161,7 +161,7 @@ $CliArgs = new CliArgs($config);
 
 ```
 
-#3
+3
 ```php
     $config = [
         'name' => [
@@ -207,11 +207,61 @@ $CliArgs = new CliArgs($config);
 ```
 ### Create a new instance
 ```php
-
 // simple config
 $config = ['foo' => 'f', 'bar' => 'b'];
 $CliArgs = new CliArgs($config);
+```
 
+### Methods
+
+```
+> example.php --foo Hello --bar World
+```
+
+###### new CliArgs([array|null])
+Constructor.
+```php
+$config = ['foo' => 'f', 'bar' => 'b'];
+$CliArgs = new CliArgs($config);
+```
+
+###### getArgs(): array
+Get all params.
+```php
+$argv = $CliArgs->getArgs();
+print_r($argv);
+// array(
+//    'foo' => 'Hello',
+//    'bar' => 'World',
+// )
+```
+
+###### getArg(string $arg): mixed
+Get one param
+```php
+$arg = $CliArgs->getArg('foo');
+// or $CliArgs->getArg('f');
+echo $arg; // Hello
+```
+
+###### isFlagExists(string $arg, string|null $alias): bool
+Checks if the given key exists in the arguments console list.
+Returns true if $arg or $alias are exists
+```php
+echo $CliArgs->isFlagExists('f'); // false
+echo $CliArgs->isFlagExists('foo'); // true
+echo $CliArgs->isFlagExists('foo', 'f'); // true
+```
+
+###### getArguments(): array
+Get prepared ARGV
+```php
+print_r($CliArgs->getArguments());
+// array(
+//     0 => 'example.php'
+//    'foo' => 'Hello',
+//    'bar' => 'World',
+// )
 ```
 
 ## Installation
