@@ -106,22 +106,22 @@ $config = [
 $CliArgs = new CliArgs($config);
 ```
 ```
-// Show help
+Show help
 > some-script.php --help
-// <?php if ($CliArgs->isFlagExists('help', 'h')) echo $CliArgs->getArg('help'); ?>
+<?php if ($CliArgs->isFlagExists('help', 'h')) echo $CliArgs->getArg('help'); ?>
 
-// Show help only for param data
-// > some-script.php --help data
-// <?php if ($CliArgs->isFlagExists('help', 'h')) echo $CliArgs->getArg('help'); ?>
+Show help only for param data
+> some-script.php --help data
+<?php if ($CliArgs->isFlagExists('help', 'h')) echo $CliArgs->getArg('help'); ?>
 
-// All the same:
-// > some-script.php --data='{"foo":"bar"}' --user-id=42
-// or
-// > some-script.php --data '{"foo":"bar"}' --user-id 42
-// or
-// > some-script.php -d '{"foo":"bar"}' --user-id 42
-// or
-// > some-script.php -d '{"foo":"bar"}' -u 42
+All the same:
+> some-script.php --data='{"foo":"bar"}' --user-id=42
+or
+> some-script.php --data '{"foo":"bar"}' --user-id 42
+or
+> some-script.php -d '{"foo":"bar"}' --user-id 42
+or
+> some-script.php -d '{"foo":"bar"}' -u 42
 
 <?php
     print_r($CliArgs->getArg('data'));
