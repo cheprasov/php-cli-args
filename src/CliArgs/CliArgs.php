@@ -1,6 +1,6 @@
 <?php
 /**
- * This file is part of RedisClient.
+ * This file is part of CliArgs.
  * git: https://github.com/cheprasov/php-cli-args
  *
  * (C) Alexander Cheprasov <cheprasov.84@ya.ru>
@@ -12,9 +12,12 @@ namespace CliArgs;
 
 class CliArgs
 {
-    const FILTER_INT   = 'int';
-    const FILTER_FLOAT = 'float';
+    const VERSION = '1.0.0';
+
     const FILTER_BOOL  = 'bool';
+    const FILTER_FLAG  = 'flag';
+    const FILTER_FLOAT = 'float';
+    const FILTER_INT   = 'int';
     const FILTER_JSON  = 'json';
     const FILTER_HELP  = 'help';
 
@@ -49,7 +52,7 @@ class CliArgs
     /**
      * @param array|null $config
      */
-    public function setConfig(array $config = null)
+    protected function setConfig(array $config = null)
     {
         $this->config = $config;
         $this->cache = [];
@@ -60,11 +63,24 @@ class CliArgs
         $this->aliases = [];
         foreach ($config as $key => $cfg) {
             $this->aliases[$key] = &$config[$key];
-            if (isset($cfg['short'])) {
-                $this->aliases[$cfg['short']] = &$config[$key];
+            $config[$key]['key'] = $key;
+
+            if (isset($cfg['alias'])) {
+                $this->aliases[$cfg['alias']] = &$config[$key];
+            } else {
+                $config[$key]['alias'] = null;
             }
-            $config[$key]['long'] = $key;
+            if (!array_key_exists('default', $cfg)) {
+                $config[$key]['default'] = null;
+            }
+            if (!isset($cfg['help'])) {
+                $config[$key]['help'] = null;
+            }
+            if (!isset($cfg['filter'])) {
+                $config[$key]['filter'] = null;
+            }
         }
+        $this->config = $config;
     }
 
     /**
@@ -80,6 +96,16 @@ class CliArgs
 
     /**
      * @param string $arg
+     * @param string|null $alias
+     * @return bool
+     */
+    public function isFlagExists($arg, $alias = null)
+    {
+        return array_key_exists($arg, $this->getArguments()) || $alias && array_key_exists($alias, $this->getArguments());
+    }
+
+    /**
+     * @param string $arg
      * @return mixed
      */
     public function getArg($arg)
@@ -88,32 +114,47 @@ class CliArgs
             return null;
         }
         if (array_key_exists($arg, $this->cache)) {
-            return $this->cache[$arg];
+            return $this->cache[$cfg['key']];
         }
         $arguments = $this->getArguments();
 
-        if (isset($cfg['long']) && isset($arguments[$cfg['long']])) {
-            $value = $arguments[$cfg['long']];
-        } elseif (isset($cfg['short']) && isset($arguments[$cfg['short']])) {
-            $value = $arguments[$cfg['short']];
-        } elseif (isset($cfg['default'])) {
+        if ($this->isFlagExists($cfg['key'])) {
+            $value = $arguments[$cfg['key']];
+        } elseif ($this->isFlagExists($cfg['alias'])) {
+            $value = $arguments[$cfg['alias']];
+        } elseif ($cfg['default']) {
             return $cfg['default'];
         } else {
             return null;
         }
 
-        if (isset($cfg['filter'])) {
-            $value = $this->filterValue($cfg['filter'], $value, isset($cfg['default']) ? $cfg['default'] : null);
+        if ($cfg['filter'] && $cfg['default'] !== $value
+            || $cfg['filter'] === self::FILTER_FLAG
+            || $cfg['filter'] === self::FILTER_HELP
+        ) {
+            $value = $this->filterValue($cfg['filter'], $value, $cfg['default'] ?: null);
         }
 
-        if (isset($cfg['long'])) {
-            $this->cache[$cfg['long']] = $value;
-        }
-        if (isset($cfg['short'])) {
-            $this->cache[$cfg['short']] = $value;
-        }
+        $this->cache[$cfg['key']] = $value;
 
         return $value;
+    }
+
+    /**
+     * @return mixed[]
+     */
+    public function getArgs()
+    {
+        $args = [];
+        $arguments = $this->getArguments();
+        foreach ($arguments as $key => $arg) {
+            if (!isset($this->aliases[$key])) {
+                continue;
+            }
+            $args[$key] = $this->getArg($key);
+        }
+
+        return $args;
     }
 
     /**
@@ -126,26 +167,23 @@ class CliArgs
     {
         if (is_string($filter)) {
             switch ($filter) {
-               case self::FILTER_BOOL:
+                case self::FILTER_FLAG:
+                    return true;
+
+                case self::FILTER_BOOL:
                    return filter_var($value, FILTER_VALIDATE_BOOLEAN);
 
-               case self::FILTER_INT:
+                case self::FILTER_INT:
                    return (int)$value;
 
-               case self::FILTER_FLOAT:
+                case self::FILTER_FLOAT:
                    return (float)$value;
 
-               case self::FILTER_JSON:
+                case self::FILTER_JSON:
                    return json_decode($value, true);
 
                 case self::FILTER_HELP:
                     return $this->getHelp($value);
-
-                default:
-                    if (preg_match($filter, $value)
-                        && preg_last_error() == PREG_NO_ERROR) {
-                        return $value;
-                    }
             }
             return $default;
         }
@@ -174,16 +212,30 @@ class CliArgs
      * @param mixed $value
      * @return string mixed
      */
-    protected function getHelp($value)
+    protected function getHelp($value = null)
     {
-        $lines = [];
-        foreach ($this->config as $key => $cfg) {
-            $lines[] = [
-                '--' . $key . (isset($cfg['short']) ? ' or -' . $cfg['short'] : ''),
-                isset($cfg['help']) ? $cfg['help'] : '',
-            ];
+        $breakTitle = PHP_EOL . str_repeat(' ', 4);
+        $breakInfo = PHP_EOL . str_repeat(' ', 8);
+        $help = [];
+        foreach ($this->config as $cfg) {
+            if ($value && ($cfg['key'] !== $value && (!$cfg['alias'] || $cfg['alias'] !== $value))) {
+                continue;
+            }
+            $title = [];
+            if ($cfg['key']) {
+                $title[] = (1 === strlen($cfg['key']) ? '-' : '--') . $cfg['key'];
+            }
+            if ($cfg['alias']) {
+                $title[] = (1 === strlen($cfg['alias']) ? '-' : '--') . $cfg['alias'];
+            }
+            $line = implode(' ', $title);
+            if ($cfg['help']) {
+                $line .= $breakInfo . wordwrap($cfg['help'], 75, $breakInfo);
+            }
+            $help[] = $breakTitle . $line;
         }
-        return $value;
+
+        return 'HELP:' . PHP_EOL . (implode(PHP_EOL, $help) ?: 'Key is not found') . PHP_EOL;
     }
 
     /**

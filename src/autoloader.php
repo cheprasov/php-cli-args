@@ -1,6 +1,6 @@
 <?php
 /**
- * This file is part of RedisClient.
+ * This file is part of CliArgs.
  * git: https://github.com/cheprasov/php-cli-args
  *
  * (C) Alexander Cheprasov <cheprasov.84@ya.ru>

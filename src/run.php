@@ -1,6 +1,6 @@
 <?php
 /**
- * This file is part of RedisClient.
+ * This file is part of CliArgs.
  * git: https://github.com/cheprasov/php-cli-args
  *
  * (C) Alexander Cheprasov <cheprasov.84@ya.ru>
@@ -14,52 +14,41 @@ use CliArgs\CliArgs;
 
 $config = [
     'help' => [
-        'short' => 'h',
+        'alias' => 'h',
         'help' => 'Show help',
         'filter' => 'help',
     ],
-    'count' => [
-        'short' => 'c',
-        'help' => 'count of bla',
-        'default' => 0,
-        'filter' => 'int'
+    'use-flag' => [
+        'alias' => 'f',
+        'help' => 'Example how to use flag',
+        'default' => false,
+        'filter' => 'flag'
     ],
     'user-id' => [
-        'long'  => 'user-id',
-        'help' => 'Id of user',
+        'alias'  => 'u',
+        'help' => 'Example about integers',
         'default' => 0,
         'filter' => 'int',
     ],
-    'type' => [
-        'short' => 't',
-        'help' => 'type please',
+    'enum' => [
+        'alias' => 'e',
+        'help' => 'Example of enum',
         'default' => 'a',
         'filter' => ['a', 'b', 'c'],
     ],
-    'alias' => [
-        'short'  => 'a',
-        'help' => 'type please',
-        'default' => 'a',
-        'filter' => '/^a\d{2}$/',
-    ],
     'json' => [
-        'short'  => 'j',
-        'help' => 'type please',
-        'default' => 'a',
+        'alias'  => 'j',
+        'help' => 'Example of json',
         'filter' => 'json',
     ],
     'func' => [
-        'short'  => 'f',
-        'help' => 'type please',
+        'alias'  => 'f',
+        'help' => 'Example of function for filter',
         'default' => null,
         'filter' => function($val, $default) { return $val * 2; },
     ],
-    'key' => [
-        'short'  => 'k',
-        'default' => null,
-    ],
 ];
 $CliArgs = new CliArgs($config);
-$key = $CliArgs->getArg('key');
-var_dump($key, $CliArgs->getArg($key));
 
+//var_dump($CliArgs->isArgExists('help'));
+var_dump($CliArgs->getArgs());
