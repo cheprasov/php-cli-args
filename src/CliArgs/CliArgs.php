@@ -12,14 +12,13 @@ namespace CliArgs;
 
 class CliArgs
 {
-    const VERSION = '1.0.0';
+    const VERSION = '2.0.0';
 
     const FILTER_BOOL  = 'bool';
     const FILTER_FLAG  = 'flag';
     const FILTER_FLOAT = 'float';
     const FILTER_INT   = 'int';
     const FILTER_JSON  = 'json';
-    const FILTER_HELP  = 'help';
 
     /**
      * @var array|null
@@ -89,6 +88,7 @@ class CliArgs
     }
 
     /**
+     * Get prepared ARGV
      * @return array|null
      */
     public function getArguments()
@@ -100,6 +100,7 @@ class CliArgs
     }
 
     /**
+     * Checks if the given key exists in the arguments console list. Returns true if $arg or $alias are exists
      * @param string $arg
      * @param string|null $alias
      * @return bool
@@ -110,6 +111,7 @@ class CliArgs
     }
 
     /**
+     * Get one param
      * @param string $arg
      * @return mixed
      */
@@ -133,10 +135,7 @@ class CliArgs
             return null;
         }
 
-        if ($cfg['filter'] && $cfg['default'] !== $value
-            || $cfg['filter'] === self::FILTER_FLAG
-            || $cfg['filter'] === self::FILTER_HELP
-        ) {
+        if ($cfg['filter'] && $cfg['default'] !== $value || $cfg['filter'] === self::FILTER_FLAG) {
             $value = $this->filterValue($cfg['filter'], $value, $cfg['default'] ?: null);
         }
 
@@ -146,6 +145,7 @@ class CliArgs
     }
 
     /**
+     * Get all params.
      * @return mixed[]
      */
     public function getArgs()
@@ -186,9 +186,6 @@ class CliArgs
 
                 case self::FILTER_JSON:
                    return json_decode($value, true);
-
-                case self::FILTER_HELP:
-                    return $this->getHelp($value);
             }
             return $default;
         }
@@ -214,11 +211,16 @@ class CliArgs
     }
 
     /**
-     * @param mixed $value
+     * Get help about
+     * @param string $value
      * @return string mixed
      */
-    protected function getHelp($value = null)
+    public function getHelp($value = null)
     {
+        if ($value) {
+            $value = $this->getArg($value);
+        }
+
         $breakTitle = PHP_EOL . str_repeat(' ', 4);
         $breakInfo = PHP_EOL . str_repeat(' ', 8);
         $help = [];

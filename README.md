@@ -1,5 +1,5 @@
 [![MIT license](http://img.shields.io/badge/license-MIT-brightgreen.svg)](http://opensource.org/licenses/MIT)
-# CliArgs v1.0.0 for PHP >= 5.5
+# CliArgs v2.0.0 for PHP >= 5.5
 
 ## About
 Class **CliArgs** helps to get options from the command line argument list easy.
@@ -79,7 +79,6 @@ $config = [
             // 'flag' - will return TRUE, if key is exists in command line argument list.
             // <array> - use array for enums. Example use ['a', 'b', 'c'] to get only one of these.
             // <callable> - use function($value, $default) { ... } to process value by yourself
-            // 'help' - use this filter if you want generate and return help about all config.
     ]
 ];
 
@@ -119,7 +118,6 @@ $config4 = [
 $config = [
     'help' => [
         'alias' => 'h',
-        'filter' => 'help',
         'help' => 'Show help about all options',
     ],
     'data' => [
@@ -138,11 +136,15 @@ $CliArgs = new CliArgs($config);
 ```
 Show help
 > some-script.php --help
-<?php if ($CliArgs->isFlagExists('help', 'h')) echo $CliArgs->getArg('help'); ?>
+<?php if ($CliArgs->isFlagExists('help', 'h')) echo $CliArgs->getHelp('help'); ?>
 
 Show help only for param data
 > some-script.php --help data
-<?php if ($CliArgs->isFlagExists('help', 'h')) echo $CliArgs->getArg('help'); ?>
+<?php if ($CliArgs->isFlagExists('help', 'h')) echo $CliArgs->getHelp('help'); ?>
+
+Show help for all params data
+> some-script.php --help data
+<?php if ($CliArgs->isFlagExists('help', 'h')) echo $CliArgs->getHelp(); ?>
 
 All the same:
 > some-script.php --data='{"foo":"bar"}' --user-id=42
@@ -293,6 +295,13 @@ print_r($CliArgs->getArguments());
 //    'foo' => 'Hello',
 //    'bar' => 'World',
 // )
+```
+
+##### geHelp([string $value = null]): string
+Get help
+```php
+echo $CliArgs->getHelp(); //  Get help for all params
+echo $CliArgs->getHelp('help'); //  Get help for secified params: --help data
 ```
 
 ## Installation
