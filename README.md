@@ -1,5 +1,5 @@
 [![MIT license](http://img.shields.io/badge/license-MIT-brightgreen.svg)](http://opensource.org/licenses/MIT)
-# CliArgs v2.0.0 for PHP >= 5.5
+# CliArgs v2.1.0 for PHP >= 5.5
 
 ## About
 Class **CliArgs** helps to get options from the command line argument list easy.
@@ -277,13 +277,26 @@ $arg = $CliArgs->getArg('foo');
 echo $arg; // Hello
 ```
 
+##### isFlagOrAliasExists(string $arg): bool
+Checks if the given key (or alias) exists in the arguments console list.
+Returns true if $arg or his alias are exists
+```php
+echo $CliArgs->isFlagOrAliasExists('f'); // true
+echo $CliArgs->isFlagOrAliasExists('foo'); // true
+
+$CliArgs->isFlagExists('foo', 'f') === $CliArgs->isFlagOrAliasExists('f');
+```
+
 ##### isFlagExists(string $arg, string|null $alias): bool
 Checks if the given key exists in the arguments console list.
+Check of key or alias is independent.
 Returns true if $arg or $alias are exists
 ```php
 echo $CliArgs->isFlagExists('f'); // false
 echo $CliArgs->isFlagExists('foo'); // true
 echo $CliArgs->isFlagExists('foo', 'f'); // true
+
+$CliArgs->isFlagExists('foo', 'f') === $CliArgs->isFlagOrAliasExists('f');
 ```
 
 ##### getArguments(): array

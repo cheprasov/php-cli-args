@@ -3,7 +3,7 @@
  * This file is part of CliArgs.
  * git: https://github.com/cheprasov/php-cli-args
  *
- * (C) Alexander Cheprasov <cheprasov.84@ya.ru>
+ * (C) Alexander Cheprasov <acheprasov84@gmail.com>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -12,7 +12,7 @@ namespace CliArgs;
 
 class CliArgs
 {
-    const VERSION = '2.0.0';
+    const VERSION = '2.1.0';
 
     const FILTER_BOOL  = 'bool';
     const FILTER_FLAG  = 'flag';
@@ -108,6 +108,25 @@ class CliArgs
     public function isFlagExists($arg, $alias = null)
     {
         return array_key_exists($arg, $this->getArguments()) || $alias && array_key_exists($alias, $this->getArguments());
+    }
+
+    /**
+     * Checks if the given key (or alias) exists in the arguments console list.
+     * @param string $arg
+     * @return bool
+     */
+    public function isFlagOrAliasExists($arg)
+    {
+        if (!isset($this->aliases[$arg])) {
+            return false;
+        }
+        $key = $this->aliases[$arg]['key'];
+        if (isset($this->aliases[$arg]['alias'])) {
+            $alias = $this->aliases[$arg]['alias'];
+        } else {
+            $alias = null;
+        }
+        return $this->isFlagExists($key, $alias);
     }
 
     /**

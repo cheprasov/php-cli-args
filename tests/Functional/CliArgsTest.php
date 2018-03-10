@@ -3,7 +3,7 @@
  * This file is part of CliArgs.
  * git: https://github.com/cheprasov/php-cli-args
  *
- * (C) Alexander Cheprasov <cheprasov.84@ya.ru>
+ * (C) Alexander Cheprasov <acheprasov84@gmail.com>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -617,5 +617,74 @@ class CliArgsTest extends \PHPUnit_Framework_TestCase
         $GLOBALS['argv'] = $argv;
         $CliArgs = new CliArgs();
         $this->assertEquals($expect, $CliArgs->isFlagExists($arg, $alias));
+    }
+
+    public function providerTestIsFlagOrAliasExists()
+    {
+        return [
+            __LINE__ => [
+                [__FILE__],
+                'foo',
+                false
+            ],
+            __LINE__ => [
+                [__FILE__, '--bar'],
+                'foo',
+                false
+            ],
+            __LINE__ => [
+                [__FILE__, 'foo'],
+                'foo',
+                false
+            ],
+            __LINE__ => [
+                [__FILE__, '--foo', 'bar'],
+                'foo',
+                true
+            ],
+            __LINE__ => [
+                [__FILE__, '--foo', 'bar'],
+                'foo',
+                true
+            ],
+            __LINE__ => [
+                [__FILE__, '-f'],
+                'foo',
+                true
+            ],
+            __LINE__ => [
+                [__FILE__, '-f', 'bar'],
+                'f',
+                true
+            ],
+            __LINE__ => [
+                [__FILE__, '-age', '12'],
+                'a',
+                true
+            ],
+            __LINE__ => [
+                [__FILE__, '-a'],
+                'age',
+                true
+            ],
+        ];
+    }
+
+    /**
+     * @see \CliArgs\CliArgs::isFlagOrAliasExists
+     * @dataProvider providerTestIsFlagOrAliasExists
+     * @param array $argv
+     * @param string $arg
+     * @param bool $expect
+     */
+    public function testIsFlagOrAliasExists($argv, $arg, $expect)
+    {
+        $GLOBALS['argv'] = $argv;
+        $CliArgs = new CliArgs([
+            'f' => 'foo',
+            'b' => 'bar',
+            'a' => 'age',
+        ]);
+        $this->assertEquals($expect, $CliArgs->isFlagOrAliasExists($arg));
     }
 }
