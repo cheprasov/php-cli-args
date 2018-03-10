@@ -74,7 +74,7 @@ $config = [
 
             // 'int' - cast to integer before return.
             // 'float' - cast to float before return.
-            // 'bool' - cast to float before return. Yes, true, 1 = TRUE, other = FALSE
+            // 'bool' - cast to bool before return. Yes, true, 1 = TRUE, other = FALSE
             // 'json' - decode JSON data before return.
             // 'flag' - will return TRUE, if key is exists in command line argument list.
             // <array> - use array for enums. Example use ['a', 'b', 'c'] to get only one of these.
