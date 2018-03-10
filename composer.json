@@ -1,6 +1,6 @@
 {
   "name": "cheprasov/php-cli-args",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Easy way to gets options from the command line argument list",
   "homepage": "http://github.com/cheprasov/php-cli-args",
   "minimum-stability": "stable",
@@ -8,7 +8,7 @@
   "authors": [
     {
       "name": "Alexander Cheprasov",
-      "email": "cheprasov.84@ya.ru"
+      "email": "acheprasov84@gmail.com"
     }
   ],
   "autoload": {
