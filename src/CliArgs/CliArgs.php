@@ -148,7 +148,7 @@ class CliArgs
             $value = $arguments[$cfg['key']];
         } elseif ($this->isFlagExists($cfg['alias'])) {
             $value = $arguments[$cfg['alias']];
-        } elseif ($cfg['default']) {
+        } elseif (isset($cfg['default'])) {
             return $cfg['default'];
         } else {
             return null;
