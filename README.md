@@ -282,9 +282,15 @@ Return `true` if key exists, otherwise the method returns `false`
 If `$checkAlias` is `true`, then the method will check key and alias, and will return `true` if key or alias exists.
 If `$checkAlias` is `false`, then the method will check only key and will return `true` only if key exists.
 ```php
-echo $CliArgs->isFlagExist('f'); // false
+// some_script.php --foo
+
+$CliArgs = new $CliArgs(['foo' => 'f']);
+
 echo $CliArgs->isFlagExist('foo'); // true
-echo $CliArgs->isFlagExist('foo', 'f'); // true
+echo $CliArgs->isFlagExist('f'); // true
+
+echo $CliArgs->isFlagExist('foo', false); // true
+echo $CliArgs->isFlagExist('f', false); // false
 ```
 
 ##### getArguments(): array
