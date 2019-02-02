@@ -115,7 +115,7 @@ class CliArgsTest extends \PHPUnit_Framework_TestCase
     {
         $GLOBALS['argv'] = $argv;
         $CliArgs = new CliArgs($config);
-        $this->assertEquals(true, $CliArgs->isFlagExists('help', 'h'));
+        $this->assertEquals(true, $CliArgs->isFlagExist('help', true));
         $this->assertEquals($expect, $CliArgs->getHelp('help'));
     }
 
@@ -152,7 +152,19 @@ class CliArgsTest extends \PHPUnit_Framework_TestCase
                 [__FILE__, '-a'],
                 ['f' => ['filter' => 'flag']],
                 'f',
-                null
+                false
+            ],
+            __LINE__ => [
+                [__FILE__, '-a'],
+                ['f' => ['filter' => 'flag', 'default' => 42]],
+                'f',
+                false
+            ],
+            __LINE__ => [
+                [__FILE__, '-a'],
+                ['f' => ['filter' => 'flag', 'alias' => 'flag']],
+                'flag',
+                false
             ],
             __LINE__ => [
                 [__FILE__, '-f'],
@@ -171,6 +183,12 @@ class CliArgsTest extends \PHPUnit_Framework_TestCase
                 ['flag' => ['filter' => 'flag', 'alias' => 'f']],
                 'f',
                 true
+            ],
+            __LINE__ => [
+                [__FILE__],
+                ['flag' => ['filter' => 'flag', 'alias' => 'f']],
+                'f',
+                false
             ],
             __LINE__ => [
                 [__FILE__, '--flag', 'foo'],
@@ -563,60 +581,62 @@ class CliArgsTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($expect, $CliArgs->getArgs());
     }
 
-    public function providerTestIsFlagExists()
+    public function providerTestisFlagExist()
     {
         return [
             __LINE__ => [
                 [__FILE__],
-                'foo', 'bar',
+                'foo', true,
                 false
             ],
             __LINE__ => [
                 [__FILE__, '--bar'],
-                'foo', null,
+                'foo', false,
                 false
             ],
             __LINE__ => [
                 [__FILE__, 'foo'],
-                'foo', null,
+                'foo', false,
                 false
             ],
             __LINE__ => [
                 [__FILE__, '--foo', 'bar'],
-                'foo', null,
+                'foo', false,
                 true
             ],
             __LINE__ => [
                 [__FILE__, '--foo', 'bar'],
-                'foo', 'f',
+                'foo', true,
                 true
             ],
             __LINE__ => [
                 [__FILE__, '-f'],
-                'foo', 'f',
+                'foo', true,
                 true
             ],
             __LINE__ => [
                 [__FILE__, '-f', 'bar'],
-                'f', null,
+                'f', false,
                 true
             ],
         ];
     }
 
     /**
-     * @see \CliArgs\CliArgs::isFlagExists
-     * @dataProvider providerTestIsFlagExists
+     * @see \CliArgs\CliArgs::isFlagExist
+     * @dataProvider providerTestisFlagExist
      * @param array $argv
      * @param string $arg
-     * @param string|null $alias
+     * @param string|null $checkAlias
      * @param bool $expect
      */
-    public function testIsFlagExists($argv, $arg, $alias, $expect)
+    public function testisFlagExist($argv, $arg, $checkAlias, $expect)
     {
         $GLOBALS['argv'] = $argv;
-        $CliArgs = new CliArgs();
-        $this->assertEquals($expect, $CliArgs->isFlagExists($arg, $alias));
+        $CliArgs = new CliArgs([
+            'foo' => 'f'
+        ]);
+        $this->assertEquals($expect, $CliArgs->isFlagExist($arg, $checkAlias));
     }
 
     public function providerTestIsFlagOrAliasExists()
@@ -685,6 +705,81 @@ class CliArgsTest extends \PHPUnit_Framework_TestCase
             'b' => 'bar',
             'a' => 'age',
         ]);
-        $this->assertEquals($expect, $CliArgs->isFlagOrAliasExists($arg));
+        $this->assertEquals($expect, $CliArgs->isFlagExist($arg, true));
+    }
+
+    public function testCliArgs()
+    {
+        $config = [
+            'user' => [
+                'alias' => 'u',
+                'filter' => 'int',
+                'default' => 0,
+            ],
+            'admin' => [
+                'alias' => 'a',
+                'filter' => 'flag',
+            ],
+            'age' => [
+                'alias' => 'g',
+            ],
+            'city',
+            'first-name' => [
+                'default' => '',
+            ],
+            'last-name',
+            'foo' => [
+                'default' => false,
+            ]
+        ];
+
+        $GLOBALS['argv'] = [__FILE__, '-u', '42', '--admin', '--age', '34', '--city', 'London', '--first-name', 'Alexander'];
+        $CliArgs = new CliArgs($config);
+
+        $this->assertEquals(true, $CliArgs->isFlagExist('u', false));
+        $this->assertEquals(false, $CliArgs->isFlagExist('user', false));
+        $this->assertEquals(true, $CliArgs->isFlagExist('user'));
+        $this->assertEquals(42, $CliArgs->getArg('u'));
+        $this->assertEquals(42, $CliArgs->getArg('user'));
+
+        $this->assertEquals(true, $CliArgs->isFlagExist('admin', false));
+        $this->assertEquals(false, $CliArgs->isFlagExist('a', false));
+        $this->assertEquals(true, $CliArgs->isFlagExist('a'));
+        $this->assertEquals(true, $CliArgs->getArg('admin'));
+        $this->assertEquals(true, $CliArgs->getArg('a'));
+
+        $this->assertEquals(true, $CliArgs->isFlagExist('age', false));
+        $this->assertEquals(false, $CliArgs->isFlagExist('g', false));
+        $this->assertEquals(true, $CliArgs->isFlagExist('g'));
+        $this->assertEquals('34', $CliArgs->getArg('age'));
+        $this->assertEquals('34', $CliArgs->getArg('g'));
+
+        $this->assertEquals(true, $CliArgs->isFlagExist('city'));
+        $this->assertEquals('London', $CliArgs->getArg('city'));
+
+        $this->assertEquals(true, $CliArgs->isFlagExist('first-name', false));
+        $this->assertEquals('Alexander', $CliArgs->getArg('first-name'));
+
+        $this->assertEquals(false, $CliArgs->isFlagExist('last-name', false));
+        $this->assertEquals(false, $CliArgs->isFlagExist('last-name'));
+        $this->assertEquals(null, $CliArgs->getArg('last-name'));
+
+        $this->assertEquals(false, $CliArgs->isFlagExist('foo'));
+        $this->assertEquals(false, $CliArgs->getArg('foo'));
+
+        $GLOBALS['argv'] = [__FILE__, '--city=London'];
+        $CliArgs = new CliArgs($config);
+
+        $this->assertEquals(false, $CliArgs->isFlagExist('user'));
+        $this->assertEquals(0, $CliArgs->getArg('user'));
+
+        $this->assertEquals(false, $CliArgs->isFlagExist('admin'));
+        $this->assertEquals(false, $CliArgs->getArg('admin'));
+
+        $this->assertEquals(true, $CliArgs->isFlagExist('city'));
+        $this->assertEquals('London', $CliArgs->getArg('city'));
+
+        $this->assertEquals(true, $CliArgs->isFlagExist('city'));
+        $this->assertEquals('London', $CliArgs->getArg('city'));
     }
 }

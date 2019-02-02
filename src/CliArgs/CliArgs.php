@@ -10,9 +10,11 @@
  */
 namespace CliArgs;
 
+use CliArgs\Exception\ConfigErrorException;
+
 class CliArgs
 {
-    const VERSION = '2.1.0';
+    const VERSION = '3.0.0';
 
     const FILTER_BOOL  = 'bool';
     const FILTER_FLAG  = 'flag';
@@ -42,6 +44,7 @@ class CliArgs
 
     /**
      * @param array $config
+     * @throws ConfigErrorException
      */
     public function __construct(array $config = null)
     {
@@ -50,6 +53,7 @@ class CliArgs
 
     /**
      * @param array|null $config
+     * @throws ConfigErrorException
      */
     protected function setConfig(array $config = null)
     {
@@ -71,7 +75,7 @@ class CliArgs
             $newConfig[$key] = [
                 'key' => $key,
                 'alias' => isset($cfg['alias']) ? $cfg['alias'] : null,
-                'default' => array_key_exists('default', $cfg) ? $cfg['default'] : null,
+                'default' => isset($cfg['default']) ? $cfg['default'] : null,
                 'help' => isset($cfg['help']) ? $cfg['help'] : null,
                 'filter' => isset($cfg['filter']) ? $cfg['filter'] : null,
             ];
@@ -80,8 +84,14 @@ class CliArgs
 
         $this->aliases = [];
         foreach ($this->config as $key => $cfg) {
+            if (isset($this->aliases[$key])) {
+                throw new ConfigErrorException("Key or alias `{$key}` is already defined");
+            }
             $this->aliases[$key] = &$this->config[$key];
             if ($cfg['alias']) {
+                if (isset($this->aliases[$cfg['alias']])) {
+                    throw new ConfigErrorException("Key or alias `{$cfg['alias']}` is already defined");
+                }
                 $this->aliases[$cfg['alias']] = &$this->config[$key];
             }
         }
@@ -101,61 +111,71 @@ class CliArgs
 
     /**
      * Checks if the given key exists in the arguments console list. Returns true if $arg or $alias are exists
-     * @param string $arg
-     * @param string|null $alias
+     * @param string $key
+     * @param boolean $checkAlias
      * @return bool
      */
-    public function isFlagExists($arg, $alias = null)
+    public function isFlagExist($key, $checkAlias = true)
     {
-        return array_key_exists($arg, $this->getArguments()) || $alias && array_key_exists($alias, $this->getArguments());
+        $arguments = $this->getArguments();
+        if (array_key_exists($key, $arguments)) {
+            return true;
+        }
+
+        if ($checkAlias && ($alias = $this->getAlias($key))) {
+            return array_key_exists($alias, $arguments);
+        }
+
+        return false;
     }
 
     /**
-     * Checks if the given key (or alias) exists in the arguments console list.
-     * @param string $arg
-     * @return bool
+     * @param string $key
+     * @return string|null
      */
-    public function isFlagOrAliasExists($arg)
+    protected function getAlias($key)
     {
-        if (!isset($this->aliases[$arg])) {
-            return false;
+        if (!isset($this->aliases[$key])) {
+            return null;
         }
-        $key = $this->aliases[$arg]['key'];
-        if (isset($this->aliases[$arg]['alias'])) {
-            $alias = $this->aliases[$arg]['alias'];
-        } else {
-            $alias = null;
+        $cfg = $this->aliases[$key];
+        if ($cfg['key'] === $key) {
+            return $cfg['alias'];
         }
-        return $this->isFlagExists($key, $alias);
+        return $cfg['key'];
     }
 
     /**
      * Get one param
-     * @param string $arg
+     * @param string $key
      * @return mixed
      */
-    public function getArg($arg)
+    public function getArg($key)
     {
-        if (!$cfg = $this->getArgFromConfig($arg)) {
+        if (!$cfg = $this->getArgConfig($key)) {
             return null;
         }
-        if (array_key_exists($arg, $this->cache)) {
+        if (array_key_exists($key, $this->cache)) {
             return $this->cache[$cfg['key']];
         }
         $arguments = $this->getArguments();
 
-        if ($this->isFlagExists($cfg['key'])) {
+        if ($this->isFlagExist($cfg['key'], false)) {
             $value = $arguments[$cfg['key']];
-        } elseif ($this->isFlagExists($cfg['alias'])) {
+        } elseif ($cfg['alias'] && $this->isFlagExist($cfg['alias'], false)) {
             $value = $arguments[$cfg['alias']];
         } elseif (isset($cfg['default'])) {
-            return $cfg['default'];
+            $value = $cfg['default'];
         } else {
-            return null;
+            $value = null;
         }
 
-        if ($cfg['filter'] && $cfg['default'] !== $value || $cfg['filter'] === self::FILTER_FLAG) {
-            $value = $this->filterValue($cfg['filter'], $value, $cfg['default'] ?: null);
+        if ($cfg['filter']) {
+            if ($cfg['filter'] === self::FILTER_FLAG) {
+                $value = $this->isFlagExist($key);
+            } elseif ($cfg['default'] !== $value)  {
+                $value = $this->filterValue($cfg['filter'], $value, $cfg['default']);
+            }
         }
 
         $this->cache[$cfg['key']] = $value;
@@ -171,7 +191,7 @@ class CliArgs
     {
         $args = [];
         $arguments = $this->getArguments();
-        foreach ($arguments as $key => $arg) {
+        foreach ($arguments as $key => $value) {
             if (!isset($this->aliases[$key])) {
                 continue;
             }
@@ -191,9 +211,6 @@ class CliArgs
     {
         if (is_string($filter)) {
             switch ($filter) {
-                case self::FILTER_FLAG:
-                    return true;
-
                 case self::FILTER_BOOL:
                    return filter_var($value, FILTER_VALIDATE_BOOLEAN);
 
@@ -218,13 +235,13 @@ class CliArgs
     }
 
     /**
-     * @param $arg
+     * @param $key
      * @return null
      */
-    protected function getArgFromConfig($arg)
+    protected function getArgConfig($key)
     {
-        if (isset($this->aliases[$arg])) {
-            return $this->aliases[$arg];
+        if (isset($this->aliases[$key])) {
+            return $this->aliases[$key];
         }
         return null;
     }

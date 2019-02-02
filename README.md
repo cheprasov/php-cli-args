@@ -1,5 +1,5 @@
 [![MIT license](http://img.shields.io/badge/license-MIT-brightgreen.svg)](http://opensource.org/licenses/MIT)
-# CliArgs v2.1.0 for PHP >= 5.5
+# CliArgs v3.0.0 for PHP >= 5.5
 
 ## About
 Class **CliArgs** helps to get options from the command line argument list easy.
@@ -76,7 +76,7 @@ $config = [
             // 'float' - cast to float before return.
             // 'bool' - cast to bool before return. Yes, true, 1 = TRUE, other = FALSE
             // 'json' - decode JSON data before return.
-            // 'flag' - will return TRUE, if key is exists in command line argument list.
+            // 'flag' - will return TRUE, if key is exists in command line argument list, otherwise - FALSE
             // <array> - use array for enums. Example use ['a', 'b', 'c'] to get only one of these.
             // <callable> - use function($value, $default) { ... } to process value by yourself
     ]
@@ -87,7 +87,7 @@ $CliArgs = new CliArgs($config);
 
 Examples of config:
 
-0
+Example 1
 ```php
 
 // Simple configs
@@ -113,7 +113,7 @@ $config4 = [
 ];
 ```
 
-1
+Example 2
 ```php
 $config = [
     'help' => [
@@ -136,15 +136,15 @@ $CliArgs = new CliArgs($config);
 ```
 Show help
 > some-script.php --help
-<?php if ($CliArgs->isFlagExists('help', 'h')) echo $CliArgs->getHelp('help'); ?>
+<?php if ($CliArgs->isFlagExist('help', 'h')) echo $CliArgs->getHelp('help'); ?>
 
 Show help only for param data
 > some-script.php --help data
-<?php if ($CliArgs->isFlagExists('help', 'h')) echo $CliArgs->getHelp('help'); ?>
+<?php if ($CliArgs->isFlagExist('help', 'h')) echo $CliArgs->getHelp('help'); ?>
 
 Show help for all params data
 > some-script.php --help data
-<?php if ($CliArgs->isFlagExists('help', 'h')) echo $CliArgs->getHelp(); ?>
+<?php if ($CliArgs->isFlagExist('help', 'h')) echo $CliArgs->getHelp(); ?>
 
 All the same:
 > some-script.php --data='{"foo":"bar"}' --user-id=42
@@ -162,7 +162,7 @@ or
     print_r($CliArgs->getArg('u'));
 ```
 
-2
+Example 3
 ```php
     $config = [
         'flag' => [
@@ -185,7 +185,7 @@ or
 > some-script.php --any="any value"
 
 <?php
-    print_r($CliArgs->isFlagExists('flag', 'f'));
+    print_r($CliArgs->isFlagExist('flag', 'f'));
     print_r($CliArgs->getArg('data'));
     print_r($CliArgs->getArg('d'));
     print_r($CliArgs->getArg('user-id'));
@@ -193,7 +193,7 @@ or
 
 ```
 
-3
+Example 4
 ```php
     $config = [
         'name' => [
@@ -251,15 +251,15 @@ $CliArgs = new CliArgs($config);
 > example.php --foo Hello --bar World
 ```
 
-##### new CliArgs([array|null])
-Constructor.
+##### new CliArgs(array|null $config = null)
+Constructor. If config contents wrong aliases then ConfigErrorException will be thrown.
 ```php
 $config = ['foo' => 'f', 'bar' => 'b'];
 $CliArgs = new CliArgs($config);
 ```
 
 ##### getArgs(): array
-Get all params.
+The method returns all passed arguments which is specified in config.
 ```php
 $argv = $CliArgs->getArgs();
 print_r($argv);
@@ -269,38 +269,26 @@ print_r($argv);
 // )
 ```
 
-##### getArg(string $arg): mixed
-Get one param
+##### getArg(string $key): mixed | null
+Returns value for argument by key. If argument is not set, then it will return default value or `null`
 ```php
 $arg = $CliArgs->getArg('foo');
 // or $CliArgs->getArg('f');
 echo $arg; // Hello
 ```
 
-##### isFlagOrAliasExists(string $arg): bool
-Checks if the given key (or alias) exists in the arguments console list.
-Returns true if $arg or his alias are exists
+##### isFlagExist(string $key, boolean $checkAlias = true): bool
+Return `true` if key exists, otherwise the method returns `false`
+If `$checkAlias` is `true`, then the method will check key and alias, and will return `true` if key or alias exists.
+If `$checkAlias` is `false`, then the method will check only key and will return `true` only if key exists.
 ```php
-echo $CliArgs->isFlagOrAliasExists('f'); // true
-echo $CliArgs->isFlagOrAliasExists('foo'); // true
-
-$CliArgs->isFlagExists('foo', 'f') === $CliArgs->isFlagOrAliasExists('f');
-```
-
-##### isFlagExists(string $arg, string|null $alias): bool
-Checks if the given key exists in the arguments console list.
-Check of key or alias is independent.
-Returns true if $arg or $alias are exists
-```php
-echo $CliArgs->isFlagExists('f'); // false
-echo $CliArgs->isFlagExists('foo'); // true
-echo $CliArgs->isFlagExists('foo', 'f'); // true
-
-$CliArgs->isFlagExists('foo', 'f') === $CliArgs->isFlagOrAliasExists('f');
+echo $CliArgs->isFlagExist('f'); // false
+echo $CliArgs->isFlagExist('foo'); // true
+echo $CliArgs->isFlagExist('foo', 'f'); // true
 ```
 
 ##### getArguments(): array
-Get prepared ARGV
+Get prepared arguments from ARGV
 ```php
 print_r($CliArgs->getArguments());
 // array(
@@ -335,4 +323,4 @@ and add dependency to your project:
 
 ## Something doesn't work
 
-Feel free to fork project, fix bugs and finally request for pull
+Feel free to fork project, fix bugs and finally request for pull (do not forget write tests please)
