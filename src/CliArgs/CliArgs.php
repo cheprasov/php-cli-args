@@ -112,7 +112,7 @@ class CliArgs
     /**
      * Checks if the given key exists in the arguments console list. Returns true if $arg or $alias are exists
      * @param string $key
-     * @param boolean $checkAlias
+     * @param bool $checkAlias
      * @return bool
      */
     public function isFlagExist($key, $checkAlias = true)
