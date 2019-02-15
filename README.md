@@ -140,11 +140,11 @@ Show help
 
 Show help only for param data
 > some-script.php --help data
-<?php if ($CliArgs->isFlagExist('help', 'h')) echo $CliArgs->getHelp('help'); ?>
+<?php if ($CliArgs->isFlagExist('help')) echo $CliArgs->getHelp('help'); ?>
 
 Show help for all params data
 > some-script.php --help data
-<?php if ($CliArgs->isFlagExist('help', 'h')) echo $CliArgs->getHelp(); ?>
+<?php if ($CliArgs->isFlagExist('help')) echo $CliArgs->getHelp(); ?>
 
 All the same:
 > some-script.php --data='{"foo":"bar"}' --user-id=42
@@ -185,7 +185,7 @@ Example 3
 > some-script.php --any="any value"
 
 <?php
-    print_r($CliArgs->isFlagExist('flag', 'f'));
+    print_r($CliArgs->isFlagExist('flag')); // or $CliArgs->isFlagExist('f')
     print_r($CliArgs->getArg('data'));
     print_r($CliArgs->getArg('d'));
     print_r($CliArgs->getArg('user-id'));
